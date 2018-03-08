@@ -43,10 +43,11 @@ void SampleModel::draw()
 
 	// draw the sample model
 	setAmbientColor(.1f,.1f,.1f);
+	setAmbientColor(.5f, .5f, .5f);
 	setDiffuseColor(COLOR_GREEN);
 	glPushMatrix();
 	glTranslated(VAL(XPOS), VAL(YPOS), VAL(ZPOS));
-
+		/*sample
 		glPushMatrix();
 		glTranslated(-1.5, 0, -2);
 		glScaled(3, 1, 4);
@@ -65,6 +66,40 @@ void SampleModel::draw()
 		glTranslated(0.0, 0.0, 0.5);
 		glRotated(90, 1.0, 0.0, 0.0);
 		drawCylinder(4, 0.1, 0.2);
+		glPopMatrix();
+		*/
+
+		glPushMatrix();
+			glTranslated(0.0, 15.0, 0.0);
+			// draw head
+			glPushMatrix();
+			setDiffuseColor(1, (float)242 / 255, (float)230 / 255);
+			drawSphere(1.7f);
+			glPopMatrix();
+			// draw neck
+			glPushMatrix();
+			glTranslated(0, -1.5, 0.0);
+			glRotated(90, 1.0, 0.0, 0.0);
+			setDiffuseColor(1, (float)242 / 255, (float)230 / 255);
+			drawCylinder(1.2f,0.5,0.5);
+			glPopMatrix();
+		glPopMatrix();
+		
+		glPushMatrix();
+			//upper body
+			glTranslated(0, 8.0, 0.0);
+			glPushMatrix();
+			glTranslated(-2, 1.8, -1.0);
+			setDiffuseColor((float)15/255, (float)10 / 255, (float)10 / 255);
+			drawBox(4.0f,3.0f,2.0f);
+			glPopMatrix();
+		glPopMatrix();
+
+		//test triangle (1 face)
+		glPushMatrix();
+		setDiffuseColor(1, (float)200 / 255, (float)1 / 255);
+		glTranslated(0.0, 1.0, 0.0);
+		drawTriangle((double)1, (double)1, (double)1, (double)2, (double)1, (double)1, (double)1, (double)2, (double)2);
 		glPopMatrix();
 
 	glPopMatrix();
