@@ -32,19 +32,19 @@ void SampleModel::draw()
     // matrix stuff.  Unless you want to fudge directly with the 
 	// projection matrix, don't bother with this ...
     ModelerView::draw();
+	//background color
+	glClearColor(1.0, 1.0, 1.0, 1.0);
 
 	// draw the floor
 	setAmbientColor(.1f,.1f,.1f);
-	setDiffuseColor(COLOR_RED);
+	setDiffuseColor(COLOR_GREEN);
 	glPushMatrix();
-	glTranslated(-5,0,-5);
-	drawBox(10,0.01f,10);
+		glTranslated(-10,0,-10);
+		drawBox(20,0.01f,20);
 	glPopMatrix();
 
 	// draw the sample model
 	setAmbientColor(.1f,.1f,.1f);
-	setAmbientColor(.5f, .5f, .5f);
-	setDiffuseColor(COLOR_GREEN);
 	glPushMatrix();
 	glTranslated(VAL(XPOS), VAL(YPOS), VAL(ZPOS));
 		/*sample
@@ -53,13 +53,11 @@ void SampleModel::draw()
 		glScaled(3, 1, 4);
 		drawBox(1,1,1);
 		glPopMatrix();
-
 		// draw cannon
 		glPushMatrix();
 		glRotated(VAL(ROTATE), 0.0, 1.0, 0.0);
 		glRotated(-90, 1.0, 0.0, 0.0);
 		drawCylinder(VAL(HEIGHT), 0.1, 0.1);
-
 		glTranslated(0.0, 0.0, VAL(HEIGHT));
 		drawCylinder(1, 1.0, 0.9);
 
@@ -69,30 +67,34 @@ void SampleModel::draw()
 		glPopMatrix();
 		*/
 
+
+		//upper body
 		glPushMatrix();
-			glTranslated(0.0, 15.0, 0.0);
-			// draw head
+			glTranslated(0, 10.0, 0.0);
+			//head and heck
 			glPushMatrix();
-			setDiffuseColor(1, (float)242 / 255, (float)230 / 255);
-			drawSphere(1.7f);
+				glTranslated(0.0, 5.0, 0.0);
+				// draw head
+				glPushMatrix();
+					setDiffuseColor(1, (float)242 / 255, (float)230 / 255);
+					drawSphere(0.9f);//1 unit = 10 cm
+				glPopMatrix();
+				// draw neck
+				glPushMatrix();
+					glTranslated(0, -0.7, 0.0);
+					glRotated(90, 1.0, 0.0, 0.0);
+					setDiffuseColor(1, (float)242 / 255, (float)230 / 255);
+					drawCylinder(1.2f, 0.3, 0.5);
+				glPopMatrix();
 			glPopMatrix();
-			// draw neck
+
 			glPushMatrix();
-			glTranslated(0, -1.5, 0.0);
-			glRotated(90, 1.0, 0.0, 0.0);
-			setDiffuseColor(1, (float)242 / 255, (float)230 / 255);
-			drawCylinder(1.2f,0.5,0.5);
+				//upper torso
+				glTranslated(-1.5, 0, -0.8);
+				setDiffuseColor((float)15/255, (float)10 / 255, (float)10 / 255);
+				drawBox(3.0f,4.0f,1.7f);
 			glPopMatrix();
-		glPopMatrix();
-		
-		glPushMatrix();
-			//upper body
-			glTranslated(0, 8.0, 0.0);
-			glPushMatrix();
-			glTranslated(-2, 1.8, -1.0);
-			setDiffuseColor((float)15/255, (float)10 / 255, (float)10 / 255);
-			drawBox(4.0f,3.0f,2.0f);
-			glPopMatrix();
+
 		glPopMatrix();
 
 		//test triangle (1 face)
