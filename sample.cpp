@@ -110,79 +110,68 @@ void SampleModel::draw()
 		drawBox(20,0.01f,20);
 	glPopMatrix();
 
-	// draw the sample model
+	// draw the model
 	setAmbientColor(.1f,.1f,.1f);
 	glPushMatrix();
 	glTranslated(VAL(XPOS), VAL(YPOS), VAL(ZPOS));
-		/*sample
-		glPushMatrix();
-		glTranslated(-1.5, 0, -2);
-		glScaled(3, 1, 4);
-		drawBox(1,1,1);
-		glPopMatrix();
-		// draw cannon
-		glPushMatrix();
-		glRotated(VAL(ROTATE), 0.0, 1.0, 0.0);
-		glRotated(-90, 1.0, 0.0, 0.0);
-		drawCylinder(VAL(HEIGHT), 0.1, 0.1);
-		glTranslated(0.0, 0.0, VAL(HEIGHT));
-		drawCylinder(1, 1.0, 0.9);
-
-		glTranslated(0.0, 0.0, 0.5);
-		glRotated(90, 1.0, 0.0, 0.0);
-		drawCylinder(4, 0.1, 0.2);
-		glPopMatrix();
-		*/
-
-		float skinColor[3] = { (float)255 / 255, (float)224 / 255, (float)190 / 255 };
+		// float skinColor[3] = { (float)255 / 255, (float)224 / 255, (float)190 / 255 };//more like human
+		float skinColor[3] = { (float)243 / 255, (float)225 / 255, (float)210 / 255 };
+		//float skinColor[3] = { (float)252 / 255, (float)243 / 255, (float)235 / 255 };//more pale
 		float clothesColor[3] = { (float)15 / 255, (float)10 / 255, (float)10 / 255 };
 
 		//1 unit = 10 cm
-		float headRadius = 0.9;
+		float headRadius = VAL(HEADRADIUS);
 		float torseWidth = 20 * 0.1;
-		float bodyThickness = 13 * 0.1;
+		float bodyThickness = VAL(BODYTHICKNESS) * 0.1;
 		float chestHeight = 18 * 0.1;
-		float shoulderRadius = 4 * 0.1;
+		float shoulderClothesRadius = 4 * 0.1;
+		float shoulderRadius = 3 * 0.1;
 		float waistHeight_upper = 12 * 0.1;
 		float waistHeight_lower = 10 * 0.1;
-		float armRadius = 3 * 0.1;
+		float armRadius = 2.5 * 0.1;
 		float armLength = 25 * 0.1;
-		float thighHeight = 40 * 0.1;
-		float legHeight = 35 * 0.1;
+		float thighHeight = VAL(THIGHHEIGHT) * 0.1;
+		float legHeight = VAL(LEGHEIGHT) * 0.1;
 		float pantsRatio = 0.3;
 		float footHeight = 5 * 0.1;
-		float hipRadius = 8 * 0.1;
+		float hipRadius = 7 * 0.1;
 		float thighRadius = 6 * 0.1; 
 		float legRadius = 3.5 * 0.1;
 		float footRadius = 2 * 0.1;
 		float hipShift = torseWidth / 4; 
 		float toeHeight = 0.2;
-
+		float headScale = VAL(HEADSCALE);
 		//upper body
 		glPushMatrix();
 			glTranslated(0, footHeight+ legHeight+ thighHeight+ hipShift / 2 + waistHeight_lower+ waistHeight_upper+ chestHeight, 0.0);
 			//head and neck
 			glPushMatrix();
+				if (VAL(LOD) >= 0) {
 				glTranslated(0.0, 2.0, 0.0);
 				// draw head
 				glPushMatrix();
 					setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+					glScaled(1, headScale,1);
+					glTranslated(0, -headRadius *headScale/2, headRadius*0.1);
 					drawSphere(headRadius);
 				glPopMatrix();
 				// draw neck
 				glPushMatrix();
-					glTranslated(0, -headRadius*3/4, 0.0);
+					glTranslated(0, -headRadius*headScale *3/4, -headRadius*0.1);
 					glRotated(90, 1.0, 0.0, 0.0);
 					setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
-					drawCylinder(1.5, 0.3, 0.4);
+					drawCylinder(1.75, 0.28, 0.32);
 				glPopMatrix();
+				}
 			glPopMatrix();
 
 			//torso and arms
 			glPushMatrix();
+				if (VAL(LOD) >0) {
 				//upper torso
 				glPushMatrix();
 					setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+					if (VAL(LOD) >1) {
 					//chest
 					glPushMatrix();
 						glTranslated(0.0, -chestHeight/2, 0.0);
@@ -197,40 +186,48 @@ void SampleModel::draw()
 						glTranslated(0.0, -chestHeight - waistHeight_upper - waistHeight_lower /2, 0.0);
 						drawTrapezoidPrism(waistHeight_lower, torseWidth * 3 / 4, bodyThickness * 3 / 4, torseWidth, bodyThickness);
 					glPopMatrix();
+					}
 				glPopMatrix();
 				glPushMatrix();//arms
+					if (VAL(LOD) >1) {
 					glPushMatrix();//right arm
 						glTranslated(torseWidth / 2 + armRadius, 0, 0);
 						//shoulder
 						setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 						glTranslated(0, -shoulderRadius, 0);
-						drawSphere(shoulderRadius);
+						drawSphere(shoulderClothesRadius);
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 						glRotated(90.0, 1.0, 0.0, 0.0);
 						//right upper arm
 						drawCylinder(armLength, shoulderRadius, armRadius);
 						//right forearm
+						if (VAL(LOD) >2) {
 						glPushMatrix();
 							glTranslated(0.0, 0, armLength);
 							drawCylinder(armLength, armRadius, armRadius);
 						glPopMatrix();
+						}
 					glPopMatrix();
 					glPushMatrix();//left arm
 						glTranslated(-torseWidth / 2 - armRadius, 0, 0);
 						//shoulder
 						setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 						glTranslated(0, -shoulderRadius, 0);
-						drawSphere(shoulderRadius);
+						drawSphere(shoulderClothesRadius);
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 						glRotated(90.0, 1.0, 0.0, 0.0);
 						drawCylinder(armLength, shoulderRadius, armRadius);//left upper arm
 						//left forearm
+						if (VAL(LOD) >2) {
 						glPushMatrix();
 							glTranslated(0.0, 0, armLength);
 							drawCylinder(armLength, armRadius, armRadius);
 						glPopMatrix();
+						}
 					glPopMatrix();
+					}
 				glPopMatrix();//end of arms
+				}
 			glPopMatrix();//arms and torso
 		glPopMatrix();//end of upper body
 		//lower body
@@ -238,6 +235,8 @@ void SampleModel::draw()
 			setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 			glTranslated(0, footHeight + legHeight + thighHeight + hipShift / 2, 0.0);
 			glPushMatrix();//hip
+				glTranslated(0, 0, -hipShift*0.15);
+				if (VAL(LOD) >0) {
 				glPushMatrix();//right
 					glTranslated(hipShift, 0, 0);
 					drawSphere(hipRadius);
@@ -246,34 +245,36 @@ void SampleModel::draw()
 					glTranslated(-hipShift, 0, 0);
 					drawSphere(hipRadius);
 				glPopMatrix();
+				}
 			glPopMatrix();//end of hip
 			glPushMatrix();//legs
+				if (VAL(LOD) >0) {
 				glPushMatrix();//right leg
 					glTranslated(-thighRadius, 0, 0);
+					if (VAL(LOD) >1) {
 					glPushMatrix();//right thigh
 						//pants
 						glRotated(90.0, 1.0, 0.0, 0.0);
 						glTranslated(0, 0, hipShift / 2);
-						glPushMatrix();//pants
-							setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
-							drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio +legRadius*(1- pantsRatio));
-						glPopMatrix();
+						setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+						drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio +legRadius*(1- pantsRatio));
 						glTranslated(0, 0, thighHeight * pantsRatio);
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
-						glPushMatrix();//thigh
-							drawCylinder(thighHeight * (1-pantsRatio), thighRadius*pantsRatio + legRadius*(1 - pantsRatio), legRadius);
-						glPopMatrix();
+						drawCylinder(thighHeight * (1-pantsRatio), thighRadius*pantsRatio + legRadius*(1 - pantsRatio), legRadius);
 						//knee
 						drawSphere(legRadius);
 						//right leg
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 						glTranslated(0, 0, thighHeight * (1 - pantsRatio));
-						glPushMatrix();
+						if (VAL(LOD) >2) {
+							glPushMatrix();
 							drawCylinder(legHeight, legRadius, footRadius);
-						glPopMatrix();
+							glPopMatrix();
 						//ankle
 						glTranslated(0, 0, legHeight);
 						drawSphere(footRadius);
+						}
+						if (VAL(LOD) >3) {
 						glPushMatrix();//foot
 							glTranslated(0, -footRadius, (footHeight-0.2)/2);
 							glRotated(-90, 0, 1, 0);
@@ -282,35 +283,38 @@ void SampleModel::draw()
 							glTranslated(0,-((footHeight - toeHeight) / 2+ toeHeight /2),0);
 							drawTrapezoidPrismShift_w(toeHeight, 2, footRadius * 2, 2, footRadius * 2);
 						glPopMatrix();//end of foot
+						}
 					glPopMatrix();//end of right thigh
+					}
 				glPopMatrix();//end of right leg
-
+				}
+				if (VAL(LOD) >0) {
 				glPushMatrix();//left leg
 					glTranslated(thighRadius, 0, 0);
+					if (VAL(LOD) >1) {
 					glPushMatrix();//left thigh
 						//pants
 						glRotated(90.0, 1.0, 0.0, 0.0);
 						glTranslated(0, 0, hipShift / 2);
-						glPushMatrix();//pants
-							setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
-							drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio + legRadius*(1 - pantsRatio));
-						glPopMatrix();
+						setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+						drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio + legRadius*(1 - pantsRatio));
 						glTranslated(0, 0, thighHeight * pantsRatio);
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
-						glPushMatrix();//thigh
-							drawCylinder(thighHeight * (1 - pantsRatio), thighRadius*pantsRatio + legRadius*(1 - pantsRatio), legRadius);
-						glPopMatrix();
+						drawCylinder(thighHeight * (1 - pantsRatio), thighRadius*pantsRatio + legRadius*(1 - pantsRatio), legRadius);
 						//knee
 						drawSphere(legRadius);
-						//right leg
+						//left leg
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 						glTranslated(0, 0, thighHeight * (1 - pantsRatio));
+						if (VAL(LOD) >2) {
 						glPushMatrix();
 							drawCylinder(legHeight, legRadius, footRadius);
 						glPopMatrix();
 						//ankle
 						glTranslated(0, 0, legHeight);
 						drawSphere(footRadius);
+						}
+						if (VAL(LOD) >3) {
 						glPushMatrix();//foot
 							glTranslated(0, -footRadius, (footHeight - 0.2) / 2);
 							glRotated(-90, 0, 1, 0);
@@ -319,9 +323,11 @@ void SampleModel::draw()
 							glTranslated(0, -((footHeight - toeHeight) / 2 + toeHeight / 2), 0);
 							drawTrapezoidPrismShift_w(toeHeight, 2, footRadius * 2, 2, footRadius * 2);
 						glPopMatrix();//end of foot
+						}
 					glPopMatrix();//end of left thigh
+					}
 				glPopMatrix();//end of left leg
-
+				}
 			glPopMatrix();//end of legs
 		glPopMatrix();// end of lower body
 	glPopMatrix();
@@ -333,11 +339,17 @@ int main()
 	// Constructor is ModelerControl(name, minimumvalue, maximumvalue, 
 	// stepsize, defaultvalue)
     ModelerControl controls[NUMCONTROLS];
+	controls[LOD] = ModelerControl("Level of Detail", 0, 6, 1.0f, 4);
     controls[XPOS] = ModelerControl("X Position", -5, 5, 0.1f, 0);
     controls[YPOS] = ModelerControl("Y Position", 0, 5, 0.1f, 0);
     controls[ZPOS] = ModelerControl("Z Position", -5, 5, 0.1f, 0);
-    controls[HEIGHT] = ModelerControl("Height", 1, 2.5, 0.1f, 1);
-	controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
+	controls[HEADRADIUS] = ModelerControl("Head Radius", 0.5, 1.5, 0.1f, 0.9f);
+	controls[HEADSCALE] = ModelerControl("Head Y-Sccale", 1, 1.5, 0.1f, 1.2f);
+	controls[BODYTHICKNESS] = ModelerControl("Body Thickness", 8, 18, 0.1f, 13.0);
+	controls[THIGHHEIGHT] = ModelerControl("Thigh Length", 20, 60, 0.1f, 40.0);
+	controls[LEGHEIGHT] = ModelerControl("Leg Length", 20, 60, 0.1f, 35.0);
+    //controls[HEIGHT] = ModelerControl("Height", 1, 2.5, 0.1f, 1);
+	//controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
 
     ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
     return ModelerApplication::Instance()->Run();
