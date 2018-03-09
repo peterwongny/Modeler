@@ -4,8 +4,75 @@
 #include "modelerapp.h"
 #include "modelerdraw.h"
 #include <FL/gl.h>
+#include <GL/glu.h>
 
 #include "modelerglobals.h"
+
+void drawTriangle(const double p1[3], const double p2[3], const double p3[3]) {
+	drawTriangle(p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2]);
+}
+
+void drawTrapezoidPrism(double h, double w1, double l1, double w2, double l2)
+{
+	double a[3] = { -w1 / 2,h / 2,-l1 / 2 };
+	double b[3] = { w1 / 2,h / 2,-l1 / 2 };
+	double c[3] = { w1 / 2,h / 2,l1 / 2 };
+	double d[3] = { -w1 / 2,h / 2,l1 / 2 };
+	double e[3] = { -w2 / 2,-h / 2,-l2 / 2 };
+	double f[3] = { w2 / 2,-h / 2,-l2 / 2 };
+	double g[3] = { w2 / 2,-h / 2,l2 / 2 };
+	double hp[3] = { -w2 / 2,-h / 2,l2 / 2 };
+	glPushMatrix();
+	//12 triangles
+
+	drawTriangle(a, c, b);
+	drawTriangle(a, d, c);
+
+	drawTriangle(a, b, f);
+	drawTriangle(a, e, f);
+	drawTriangle(b, c, g);
+	drawTriangle(b, g, f);
+	drawTriangle(c, d, hp);
+	drawTriangle(c, g, hp);
+	drawTriangle(d, a, e);
+	drawTriangle(d, e, hp);
+
+	drawTriangle(e, g, f);
+	drawTriangle(e, hp, g);
+
+	glPopMatrix();
+}
+
+void drawTrapezoidPrismShift_w(double h, double w1, double l1, double w2, double l2)
+{
+	double a[3] = { 0,h / 2,-l1 / 2 };
+	double b[3] = { w1 ,h / 2,-l1 / 2 };
+	double c[3] = { w1 ,h / 2,l1 / 2 };
+	double d[3] = { 0,h / 2,l1 / 2 };
+	double e[3] = { 0,-h / 2,-l2 / 2 };
+	double f[3] = { w2 ,-h / 2,-l2 / 2 };
+	double g[3] = { w2 ,-h / 2,l2 / 2 };
+	double hp[3] = {0,-h / 2,l2 / 2 };
+	glPushMatrix();
+	//12 triangles
+
+	drawTriangle(a, c, b);
+	drawTriangle(a, d, c);
+
+	drawTriangle(a, b, f);
+	drawTriangle(a, e, f);
+	drawTriangle(b, c, g);
+	drawTriangle(b, g, f);
+	drawTriangle(c, d, hp);
+	drawTriangle(c, g, hp);
+	drawTriangle(d, a, e);
+	drawTriangle(d, e, hp);
+
+	drawTriangle(e, g, f);
+	drawTriangle(e, hp, g);
+
+	glPopMatrix();
+}
 
 // To make a SampleModel, we inherit off of ModelerView
 class SampleModel : public ModelerView 
@@ -67,43 +134,196 @@ void SampleModel::draw()
 		glPopMatrix();
 		*/
 
+		float skinColor[3] = { (float)255 / 255, (float)224 / 255, (float)190 / 255 };
+		float clothesColor[3] = { (float)15 / 255, (float)10 / 255, (float)10 / 255 };
+
+		//1 unit = 10 cm
+		float headRadius = 0.9;
+		float torseWidth = 20 * 0.1;
+		float bodyThickness = 13 * 0.1;
+		float chestHeight = 18 * 0.1;
+		float shoulderRadius = 4 * 0.1;
+		float waistHeight_upper = 12 * 0.1;
+		float waistHeight_lower = 10 * 0.1;
+		float armRadius = 3 * 0.1;
+		float armLength = 25 * 0.1;
+		float thighHeight = 40 * 0.1;
+		float legHeight = 35 * 0.1;
+		float pantsRatio = 0.3;
+		float footHeight = 5 * 0.1;
+		float hipRadius = 8 * 0.1;
+		float thighRadius = 6 * 0.1; 
+		float legRadius = 3.5 * 0.1;
+		float footRadius = 2 * 0.1;
+		float hipShift = torseWidth / 4; 
+		float toeHeight = 0.2;
 
 		//upper body
 		glPushMatrix();
-			glTranslated(0, 10.0, 0.0);
-			//head and heck
+			glTranslated(0, footHeight+ legHeight+ thighHeight+ hipShift / 2 + waistHeight_lower+ waistHeight_upper+ chestHeight, 0.0);
+			//head and neck
 			glPushMatrix();
-				glTranslated(0.0, 5.0, 0.0);
+				glTranslated(0.0, 2.0, 0.0);
 				// draw head
 				glPushMatrix();
-					setDiffuseColor(1, (float)242 / 255, (float)230 / 255);
-					drawSphere(0.9f);//1 unit = 10 cm
+					setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+					drawSphere(headRadius);
 				glPopMatrix();
 				// draw neck
 				glPushMatrix();
-					glTranslated(0, -0.7, 0.0);
+					glTranslated(0, -headRadius*3/4, 0.0);
 					glRotated(90, 1.0, 0.0, 0.0);
-					setDiffuseColor(1, (float)242 / 255, (float)230 / 255);
-					drawCylinder(1.2f, 0.3, 0.5);
+					setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+					drawCylinder(1.5, 0.3, 0.4);
 				glPopMatrix();
 			glPopMatrix();
 
+			//torso and arms
 			glPushMatrix();
 				//upper torso
-				glTranslated(-1.5, 0, -0.8);
-				setDiffuseColor((float)15/255, (float)10 / 255, (float)10 / 255);
-				drawBox(3.0f,4.0f,1.7f);
-			glPopMatrix();
-
-		glPopMatrix();
-
-		//test triangle (1 face)
+				glPushMatrix();
+					setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+					//chest
+					glPushMatrix();
+						glTranslated(0.0, -chestHeight/2, 0.0);
+						drawTrapezoidPrism(chestHeight, torseWidth, bodyThickness*4/5, torseWidth , bodyThickness);
+					glPopMatrix();
+					//waist
+					glPushMatrix();
+						glTranslated(0.0, -chestHeight - waistHeight_upper /2, 0.0);
+						drawTrapezoidPrism(waistHeight_upper, torseWidth, bodyThickness, torseWidth*3/4, bodyThickness*3/4);
+					glPopMatrix();
+					glPushMatrix();
+						glTranslated(0.0, -chestHeight - waistHeight_upper - waistHeight_lower /2, 0.0);
+						drawTrapezoidPrism(waistHeight_lower, torseWidth * 3 / 4, bodyThickness * 3 / 4, torseWidth, bodyThickness);
+					glPopMatrix();
+				glPopMatrix();
+				glPushMatrix();//arms
+					glPushMatrix();//right arm
+						glTranslated(torseWidth / 2 + armRadius, 0, 0);
+						//shoulder
+						setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+						glTranslated(0, -shoulderRadius, 0);
+						drawSphere(shoulderRadius);
+						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+						glRotated(90.0, 1.0, 0.0, 0.0);
+						//right upper arm
+						drawCylinder(armLength, shoulderRadius, armRadius);
+						//right forearm
+						glPushMatrix();
+							glTranslated(0.0, 0, armLength);
+							drawCylinder(armLength, armRadius, armRadius);
+						glPopMatrix();
+					glPopMatrix();
+					glPushMatrix();//left arm
+						glTranslated(-torseWidth / 2 - armRadius, 0, 0);
+						//shoulder
+						setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+						glTranslated(0, -shoulderRadius, 0);
+						drawSphere(shoulderRadius);
+						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+						glRotated(90.0, 1.0, 0.0, 0.0);
+						drawCylinder(armLength, shoulderRadius, armRadius);//left upper arm
+						//left forearm
+						glPushMatrix();
+							glTranslated(0.0, 0, armLength);
+							drawCylinder(armLength, armRadius, armRadius);
+						glPopMatrix();
+					glPopMatrix();
+				glPopMatrix();//end of arms
+			glPopMatrix();//arms and torso
+		glPopMatrix();//end of upper body
+		//lower body
 		glPushMatrix();
-		setDiffuseColor(1, (float)200 / 255, (float)1 / 255);
-		glTranslated(0.0, 1.0, 0.0);
-		drawTriangle((double)1, (double)1, (double)1, (double)2, (double)1, (double)1, (double)1, (double)2, (double)2);
-		glPopMatrix();
+			setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+			glTranslated(0, footHeight + legHeight + thighHeight + hipShift / 2, 0.0);
+			glPushMatrix();//hip
+				glPushMatrix();//right
+					glTranslated(hipShift, 0, 0);
+					drawSphere(hipRadius);
+				glPopMatrix();
+				glPushMatrix();//left
+					glTranslated(-hipShift, 0, 0);
+					drawSphere(hipRadius);
+				glPopMatrix();
+			glPopMatrix();//end of hip
+			glPushMatrix();//legs
+				glPushMatrix();//right leg
+					glTranslated(-thighRadius, 0, 0);
+					glPushMatrix();//right thigh
+						//pants
+						glRotated(90.0, 1.0, 0.0, 0.0);
+						glTranslated(0, 0, hipShift / 2);
+						glPushMatrix();//pants
+							setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+							drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio +legRadius*(1- pantsRatio));
+						glPopMatrix();
+						glTranslated(0, 0, thighHeight * pantsRatio);
+						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+						glPushMatrix();//thigh
+							drawCylinder(thighHeight * (1-pantsRatio), thighRadius*pantsRatio + legRadius*(1 - pantsRatio), legRadius);
+						glPopMatrix();
+						//knee
+						drawSphere(legRadius);
+						//right leg
+						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+						glTranslated(0, 0, thighHeight * (1 - pantsRatio));
+						glPushMatrix();
+							drawCylinder(legHeight, legRadius, footRadius);
+						glPopMatrix();
+						//ankle
+						glTranslated(0, 0, legHeight);
+						drawSphere(footRadius);
+						glPushMatrix();//foot
+							glTranslated(0, -footRadius, (footHeight-0.2)/2);
+							glRotated(-90, 0, 1, 0);
+							glRotated(90, 0, 0, 1);
+							drawTrapezoidPrismShift_w((footHeight- toeHeight), footRadius*2, footRadius*2, 2, footRadius*2);
+							glTranslated(0,-((footHeight - toeHeight) / 2+ toeHeight /2),0);
+							drawTrapezoidPrismShift_w(toeHeight, 2, footRadius * 2, 2, footRadius * 2);
+						glPopMatrix();//end of foot
+					glPopMatrix();//end of right thigh
+				glPopMatrix();//end of right leg
 
+				glPushMatrix();//left leg
+					glTranslated(thighRadius, 0, 0);
+					glPushMatrix();//left thigh
+						//pants
+						glRotated(90.0, 1.0, 0.0, 0.0);
+						glTranslated(0, 0, hipShift / 2);
+						glPushMatrix();//pants
+							setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
+							drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio + legRadius*(1 - pantsRatio));
+						glPopMatrix();
+						glTranslated(0, 0, thighHeight * pantsRatio);
+						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+						glPushMatrix();//thigh
+							drawCylinder(thighHeight * (1 - pantsRatio), thighRadius*pantsRatio + legRadius*(1 - pantsRatio), legRadius);
+						glPopMatrix();
+						//knee
+						drawSphere(legRadius);
+						//right leg
+						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+						glTranslated(0, 0, thighHeight * (1 - pantsRatio));
+						glPushMatrix();
+							drawCylinder(legHeight, legRadius, footRadius);
+						glPopMatrix();
+						//ankle
+						glTranslated(0, 0, legHeight);
+						drawSphere(footRadius);
+						glPushMatrix();//foot
+							glTranslated(0, -footRadius, (footHeight - 0.2) / 2);
+							glRotated(-90, 0, 1, 0);
+							glRotated(90, 0, 0, 1);
+							drawTrapezoidPrismShift_w((footHeight - toeHeight), footRadius * 2, footRadius * 2, 2, footRadius * 2);
+							glTranslated(0, -((footHeight - toeHeight) / 2 + toeHeight / 2), 0);
+							drawTrapezoidPrismShift_w(toeHeight, 2, footRadius * 2, 2, footRadius * 2);
+						glPopMatrix();//end of foot
+					glPopMatrix();//end of left thigh
+				glPopMatrix();//end of left leg
+
+			glPopMatrix();//end of legs
+		glPopMatrix();// end of lower body
 	glPopMatrix();
 }
 
