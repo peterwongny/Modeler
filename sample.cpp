@@ -144,9 +144,10 @@ void SampleModel::draw()
 		//upper body
 		glPushMatrix();
 			glTranslated(0, footHeight+ legHeight+ thighHeight+ hipShift / 2 + waistHeight_lower+ waistHeight_upper+ chestHeight, 0.0);
+			glRotated(VAL(UPPERBODYANGLE), 0, 1, 0);
 			//head and neck
 			glPushMatrix();
-				if (VAL(LOD) >= 0) {
+				if (VAL(LOD) > 1) {
 				glTranslated(0.0, 2.0, 0.0);
 				// draw head
 				glPushMatrix();
@@ -352,6 +353,7 @@ int main()
 	controls[LEFTTHIGHANGLE] = ModelerControl("Left Thigh Angle", -90, 90, 1, 0.0);
 	controls[RIGHTLEGANGLE] = ModelerControl("Right Leg Angle", 0, 90, 1, 0.0);
 	controls[LEFTLEGANGLE] = ModelerControl("Left Leg Angle", 0, 90, 1, 0.0);
+	controls[UPPERBODYANGLE] = ModelerControl("Upper Body Angle", -90, 90, 1, 0.0);
     //controls[HEIGHT] = ModelerControl("Height", 1, 2.5, 0.1f, 1);
 	//controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
 
