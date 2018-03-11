@@ -178,9 +178,57 @@ void Camera::applyViewingTransform() {
 
 	// Place the camera at mPosition, aim the camera at
 	// mLookAt, and twist the camera such that mUpVector is up
-	gluLookAt(	mPosition[0], mPosition[1], mPosition[2],
-				mLookAt[0],   mLookAt[1],   mLookAt[2],
-				mUpVector[0], mUpVector[1], mUpVector[2]);
+
+	//gluLookAt(	mPosition[0], mPosition[1], mPosition[2],
+	//			mLookAt[0],   mLookAt[1],   mLookAt[2],
+	//			mUpVector[0], mUpVector[1], mUpVector[2]);
+
+	lookAt(mPosition, mLookAt, mUpVector);
 }
+
+void Camera::lookAt(Vec3f eye, Vec3f at, Vec3f up)
+{
+	Vec3f f = (at - eye);
+	f.normalize();
+	up.normalize();
+
+	Vec3f s = f^up;
+	s.normalize();
+	Vec3f v = s^f;
+	v.normalize();
+
+	Mat4f matrix;
+	matrix[0][0] = s[0];
+	matrix[0][1] = s[1];
+	matrix[0][2] = s[2];
+
+	matrix[1][0] = v[0];
+	matrix[1][1] = v[1];
+	matrix[1][2] = v[2];
+
+	matrix[2][0] = -f[0];
+	matrix[2][1] = -f[1];
+	matrix[2][2] = -f[2];
+
+	matrix[0][3] = 0;
+	matrix[1][3] = 0;
+	matrix[2][3] = 0;
+
+	matrix[3][0] = 0;
+	matrix[3][1] = 0;
+	matrix[3][2] = 0;
+
+	matrix[3][3] = 1;
+
+	GLfloat M[4 * 4];
+
+	matrix.getGLMatrix(M);
+	glMultMatrixf(M);
+	glTranslated(-eye[0], -eye[1], -eye[2]);
+
+
+
+}
+
 
 #pragma warning(pop)
