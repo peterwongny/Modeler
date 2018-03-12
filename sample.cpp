@@ -102,6 +102,11 @@ void SampleModel::draw()
 	//background color
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 
+	GLfloat lightPosition0[4] = {VAL(L1X), VAL(L1Y), VAL(L1Z), 0};
+
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition0);
+	//glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse0);
+
 	// draw the floor
 	setAmbientColor(.1f,.1f,.1f);
 	setDiffuseColor(COLOR_GREEN);
@@ -341,14 +346,17 @@ int main()
 	// stepsize, defaultvalue)
     ModelerControl controls[NUMCONTROLS];
 	controls[LOD] = ModelerControl("Level of Detail", 0, 4, 1.0f, 4);
+	controls[L1X] = ModelerControl("Light X Position", -30, 30, 1, 4);
+	controls[L1Y] = ModelerControl("Light Y Position", -30, 30, 1, 2);
+	controls[L1Z] = ModelerControl("Light Z Position", -30, 30, 1, -4);
     controls[XPOS] = ModelerControl("X Position", -5, 5, 0.1f, 0);
     controls[YPOS] = ModelerControl("Y Position", 0, 5, 0.1f, 0);
     controls[ZPOS] = ModelerControl("Z Position", -5, 5, 0.1f, 0);
 	controls[HEADRADIUS] = ModelerControl("Head Radius", 0.5, 1.5, 0.1f, 0.9f);
 	controls[HEADSCALE] = ModelerControl("Head Y-Sccale", 1, 1.5, 0.1f, 1.2f);
-	controls[BODYTHICKNESS] = ModelerControl("Body Thickness", 8, 18, 0.1f, 13.0);
-	controls[THIGHHEIGHT] = ModelerControl("Thigh Length", 20, 60, 0.1f, 40.0);
-	controls[LEGHEIGHT] = ModelerControl("Leg Length", 20, 60, 0.1f, 35.0);
+	controls[BODYTHICKNESS] = ModelerControl("Body Thickness", 8, 18, 1, 13.0);
+	controls[THIGHHEIGHT] = ModelerControl("Thigh Length", 20, 60, 1, 40.0);
+	controls[LEGHEIGHT] = ModelerControl("Leg Length", 20, 60, 1, 35.0);
 	controls[RIGHTTHIGHANGLE] = ModelerControl("Right Thigh Angle", -90, 90, 1, 0.0);
 	controls[LEFTTHIGHANGLE] = ModelerControl("Left Thigh Angle", -90, 90, 1, 0.0);
 	controls[RIGHTLEGANGLE] = ModelerControl("Right Leg Angle", 0, 90, 1, 0.0);
