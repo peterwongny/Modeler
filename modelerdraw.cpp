@@ -416,6 +416,45 @@ void drawTriangle( double x1, double y1, double z1,
     }
 }
 
+void drawTorus(double innerRadius, double outterRadius)
+{
+	ModelerDrawState *mds = ModelerDrawState::Instance();
+	int divisions;
+
+	switch (mds->m_quality)
+	{
+	case HIGH:
+		divisions = 32; break;
+	case MEDIUM:
+		divisions = 20; break;
+	case LOW:
+		divisions = 12; break;
+	case POOR:
+		divisions = 8; break;
+	}
+
+	float twoPI = 2 * M_PI;
+
+	for (int i = 0; i != divisions; i++) {
+		glBegin(GL_QUAD_STRIP);
+		for (int j = 0; j != divisions + 1; j++) {
+			for (int k = 0; k != 2; k++) {
+
+				double x, y, z;
+
+				x = (innerRadius*cos(j * twoPI / (divisions)) + outterRadius) * cos((i + k) * twoPI / (divisions - 1));
+				y = (innerRadius*sin(j * twoPI / (divisions)));
+				z = (innerRadius*cos(j * twoPI / (divisions)) + outterRadius) * sin((i + k) *twoPI / (divisions - 1));
+			
+				glVertex3d(x, y, z);
+			}
+
+
+		}
+		glEnd();
+	}
+}
+
 
 
 

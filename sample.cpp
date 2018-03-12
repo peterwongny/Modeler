@@ -331,7 +331,21 @@ void SampleModel::draw()
 				}
 			glPopMatrix();//end of legs
 		glPopMatrix();// end of lower body
+	
+		
+	    //test
+		glPushMatrix();
+
+		glTranslated(3, 3, 3);
+		drawTorus(0.5, 2);
+
+		glPopMatrix();
+
+		//test end	
+		
+		
 	glPopMatrix();
+
 }
 
 int main()
