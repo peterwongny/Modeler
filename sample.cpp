@@ -100,7 +100,7 @@ void SampleModel::draw()
 	// projection matrix, don't bother with this ...
     ModelerView::draw();
 	//background color
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	//glClearColor(1.0, 1.0, 1.0, 1.0);
 
 	// draw the floor
 	setAmbientColor(.1f,.1f,.1f);
@@ -356,6 +356,8 @@ int main()
 	controls[UPPERBODYANGLE] = ModelerControl("Upper Body Angle", -90, 90, 1, 0.0);
     //controls[HEIGHT] = ModelerControl("Height", 1, 2.5, 0.1f, 1);
 	//controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
+
+	controls[FRAMEALL] = ModelerControl("Frame All", 0, 1, 1, 0);
 
     ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
     return ModelerApplication::Instance()->Run();

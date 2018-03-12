@@ -4,6 +4,9 @@
 
 #include "camera.h"
 
+#include "modelerapp.h"
+#include "modelerglobals.h"
+
 #pragma warning(push)
 #pragma warning(disable : 4244)
 
@@ -102,7 +105,7 @@ void Camera::calculateViewingTransformParameters()
 Camera::Camera() 
 {
 	mElevation = mAzimuth = mTwist = 0.0f;
-	mDolly = -20.0f;
+	mDolly = -70.0f;
 	mElevation = 0.2f;
 	mAzimuth = (float)M_PI;
 
@@ -173,8 +176,7 @@ void Camera::releaseMouse( int x, int y )
 
 
 void Camera::applyViewingTransform() {
-	if( mDirtyTransform )
-		calculateViewingTransformParameters();
+
 
 	// Place the camera at mPosition, aim the camera at
 	// mLookAt, and twist the camera such that mUpVector is up
@@ -182,6 +184,17 @@ void Camera::applyViewingTransform() {
 	//gluLookAt(	mPosition[0], mPosition[1], mPosition[2],
 	//			mLookAt[0],   mLookAt[1],   mLookAt[2],
 	//			mUpVector[0], mUpVector[1], mUpVector[2]);
+
+	if (VAL(FRAMEALL)) {
+		mLookAt = Vec3f(VAL(XPOS), VAL(YPOS), VAL(ZPOS));
+
+			mDolly = -70;
+			mDirtyTransform = true;
+	}
+
+	if (mDirtyTransform)
+		calculateViewingTransformParameters();
+
 
 	lookAt(mPosition, mLookAt, mUpVector);
 }
