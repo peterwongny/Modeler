@@ -10,6 +10,7 @@
 #include "bitmap.h"
 
 static unsigned char* textureImage;
+static unsigned char* textureImageLeg;
 static int frameTimer;
 
 void drawTriangle(const double p1[3], const double p2[3], const double p3[3]) {
@@ -128,12 +129,29 @@ void drawTrapezoidPrismShift_w(double h, double w1, double l1, double w2, double
 	glPopMatrix();
 }
 
+void legTexture(GLuint textureID) {
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, textureImageLeg);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
 // To make a SampleModel, we inherit off of ModelerView
 class SampleModel : public ModelerView 
 {
 public:
     SampleModel(int x, int y, int w, int h, char *label) 
         : ModelerView(x,y,w,h,label) { }
+
+	~SampleModel() {
+		if (textureImage!=NULL)delete textureImage;
+		if (textureImageLeg!=NULL)delete textureImageLeg;
+	}
 
     virtual void draw();
 };
@@ -158,11 +176,19 @@ void SampleModel::draw()
 
 	GLfloat lightPosition0[4] = {VAL(L1X), VAL(L1Y), VAL(L1Z), 0};
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition0);
+	GLfloat lightIntensity0[4] = { VAL(LINTENSITY), VAL(LINTENSITY), VAL(LINTENSITY), 1 };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity0);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity0);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lightIntensity0);
 
 	//load image
 	if (textureImage == NULL) {
 		int width, height;
-		textureImage = readBMP("texture.bmp", width, height);
+		textureImage = readBMP("clothesTexture.bmp", width, height);
+	}
+	if (VAL(CHANGELEGTEXTURE) == 1 && textureImageLeg == NULL) {
+		int width, height;
+		textureImageLeg = readBMP("textureLeg2.bmp", width, height);
 	}
 
 	//animation: walk
@@ -249,8 +275,8 @@ void SampleModel::draw()
 			glRotated(VAL(UPPERBODYANGLE)+anim_upperBody_angle, 0, 1, 0);
 			//head and neck
 			glPushMatrix();
-				if (VAL(LOD) > 1) {
 				glTranslated(0.0, 2.0, 0.0);
+				if (VAL(LOD) >= 1) {
 				// draw head
 				glPushMatrix();
 					setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
@@ -258,14 +284,12 @@ void SampleModel::draw()
 					glTranslated(0, -headRadius *headScale/2, headRadius*0.1);
 					drawSphere(headRadius);
 				glPopMatrix();
-				// draw neck
-				glPushMatrix();
-					glTranslated(0, -headRadius*headScale *3/4, -headRadius*0.1);
-					glRotated(90, 1.0, 0.0, 0.0);
-					setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
-					drawCylinder(1.75, 0.28, 0.32);
-				glPopMatrix();
 				}
+				// draw neck
+				glTranslated(0, -headRadius*headScale * 3 / 4, -headRadius*0.1);
+				glRotated(90, 1.0, 0.0, 0.0);
+				setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+				drawCylinder(1.75, 0.28, 0.32);
 			glPopMatrix();
 
 			//torso and arms
@@ -274,7 +298,7 @@ void SampleModel::draw()
 				//upper torso
 				glPushMatrix();
 					setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
-					if (VAL(LOD) >1) {
+					if (VAL(LOD) >0) {
 					//chest
 					glPushMatrix();
 						glTranslated(0.0, -chestHeight/2, 0.0);
@@ -288,7 +312,6 @@ void SampleModel::draw()
 					glPushMatrix();
 						glTranslated(0.0, -chestHeight - waistHeight_upper - waistHeight_lower /2, 0.0);
 						drawTrapezoidPrismTextured(waistHeight_lower, torseWidth * 3 / 4, bodyThickness * 3 / 4, torseWidth, bodyThickness);
-						//drawTrapezoidPrism(waistHeight_lower, torseWidth * 3 / 4, bodyThickness * 3 / 4, torseWidth, bodyThickness);
 					glPopMatrix();
 					}
 				glPopMatrix();
@@ -300,15 +323,31 @@ void SampleModel::draw()
 						setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 						glTranslated(0, -shoulderRadius, 0);
 						drawSphere(shoulderClothesRadius);
-						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 						glRotated(90.0, 1.0, 0.0, 0.0);
 						//right upper arm
+						if (VAL(CHANGEHANDS)) {
+							setDiffuseColor(COLOR_GOLD); 
+							glRotated(15.0, 0.0, 1.0, 0.0);
+						}
+						else {
+							setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+						}
 						drawCylinder(armLength, shoulderRadius, armRadius);
 						//right forearm
 						if (VAL(LOD) >2) {
 						glPushMatrix();
 							glTranslated(0.0, 0, armLength);
-							drawCylinder(armLength, armRadius, armRadius);
+							if (!VAL(CHANGEHANDS))drawCylinder(armLength, armRadius, armRadius); 
+							else {
+								drawCylinder(armLength*2, armRadius, armRadius * 2.5);
+								if (VAL(LOD)>3){
+									glPushMatrix();
+									glTranslated(0.0, 0, armLength*2+0.4);
+									glRotated(90, 1, 0, 0);
+									drawTorus(0.15, armRadius * 3);
+									glPopMatrix();
+								}
+							}
 						glPopMatrix();
 						}
 					glPopMatrix();
@@ -318,14 +357,24 @@ void SampleModel::draw()
 						setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 						glTranslated(0, -shoulderRadius, 0);
 						drawSphere(shoulderClothesRadius);
-						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 						glRotated(90.0, 1.0, 0.0, 0.0);
-						drawCylinder(armLength, shoulderRadius, armRadius);//left upper arm
+						//left upper arm
+						if (VAL(CHANGEHANDS)) {
+							setDiffuseColor(COLOR_GOLD);
+							glRotated(-15.0, 0.0, 1.0, 0.0);
+						}
+						else {
+							setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+						}
+						drawCylinder(armLength, shoulderRadius, armRadius);
 						//left forearm
 						if (VAL(LOD) >2) {
 						glPushMatrix();
 							glTranslated(0.0, 0, armLength);
-							drawCylinder(armLength, armRadius, armRadius);
+							if (!VAL(CHANGEHANDS))drawCylinder(armLength, armRadius, armRadius);
+							else {
+								drawCylinder(armLength * 2, armRadius, armRadius * 2.5);
+							}
 						glPopMatrix();
 						}
 					glPopMatrix();
@@ -363,21 +412,27 @@ void SampleModel::draw()
 					setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 					drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio +legRadius*(1- pantsRatio));
 					//thigh
+					if (VAL(CHANGELEGTEXTURE) == 1) {
+						legTexture(textureID);
+					}
 					glTranslated(0, 0, thighHeight * pantsRatio);
 					setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 					drawCylinder(thighHeight * (1-pantsRatio), thighRadius*pantsRatio + legRadius*(1 - pantsRatio), legRadius);
 					//knee
 					glTranslated(0, 0, thighHeight * (1 - pantsRatio));
 					drawSphere(legRadius);
+					if (VAL(CHANGELEGTEXTURE) == 1) glDisable(GL_TEXTURE_2D);
 					//right leg
 					if (VAL(LOD) >2) {
 					glPushMatrix();
+						if (VAL(CHANGELEGTEXTURE) == 1)legTexture(textureID);
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 						glRotated(VAL(RIGHTLEGANGLE)+anim_rightLeg_angle, 1, 0, 0);
 						drawCylinder(legHeight, legRadius, footRadius);
 						//ankle
 						glTranslated(0, 0, legHeight);
 						drawSphere(footRadius);
+						if (VAL(CHANGELEGTEXTURE) == 1) glDisable(GL_TEXTURE_2D);
 						if (VAL(LOD) >3) {
 						glPushMatrix();//foot
 							setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
@@ -404,19 +459,24 @@ void SampleModel::draw()
 					//thigh
 					glTranslated(0, 0, thighHeight * pantsRatio);
 					setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
+					if (VAL(CHANGELEGTEXTURE) == 1)legTexture(textureID);
 					drawCylinder(thighHeight * (1 - pantsRatio), thighRadius*pantsRatio + legRadius*(1 - pantsRatio), legRadius);
 					//knee
 					glTranslated(0, 0, thighHeight * (1 - pantsRatio));
 					drawSphere(legRadius);
+
+					if (VAL(CHANGELEGTEXTURE) == 1)glDisable(GL_TEXTURE_2D);
 					//right leg
 					if (VAL(LOD) >2) {
 						glPushMatrix();
+						if (VAL(CHANGELEGTEXTURE) == 1)legTexture(textureID);
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
 						glRotated(VAL(LEFTLEGANGLE)+ anim_leftLeg_angle, 1, 0, 0);
 						drawCylinder(legHeight, legRadius, footRadius);
 						//ankle
 						glTranslated(0, 0, legHeight);
 						drawSphere(footRadius);
+						if (VAL(CHANGELEGTEXTURE) == 1)glDisable(GL_TEXTURE_2D);
 						if (VAL(LOD) >3) {
 							glPushMatrix();//foot
 							setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
@@ -435,10 +495,11 @@ void SampleModel::draw()
 			glPopMatrix();//end of legs
 		glPopMatrix();// end of lower body
 	
-		glPushMatrix();
+		/*glPushMatrix();
+			setDiffuseColor((float)255/255, (float)255 / 255, (float)51 / 255);
 			glTranslated(3, 3, 3);
 			drawTorus(0.5, 2);
-		glPopMatrix();		
+		glPopMatrix();*/
 		
 	glPopMatrix();
 }
@@ -469,7 +530,9 @@ int main()
 	controls[RIGHTLEGANGLE] = ModelerControl("Right Leg Angle", 0, 90, 1, 0.0);
 	controls[LEFTLEGANGLE] = ModelerControl("Left Leg Angle", 0, 90, 1, 0.0);
 	controls[UPPERBODYANGLE] = ModelerControl("Upper Body Angle", -90, 90, 1, 0.0);
-    //controls[HEIGHT] = ModelerControl("Height", 1, 2.5, 0.1f, 1);
+    controls[LINTENSITY] = ModelerControl("Light Intensity", -1, 1, 0.01f, 0.5);
+	controls[CHANGELEGTEXTURE] = ModelerControl("Change Legs Texture", 0, 1, 1, 0);
+	controls[CHANGEHANDS] = ModelerControl("Change Hands", 0, 1, 1, 0);
 	//controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
 
 	controls[FRAMEALL] = ModelerControl("Frame All", 0, 1, 1, 0);
