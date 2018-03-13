@@ -10,9 +10,13 @@
 // of the controls from the user interface.
 enum SampleModelControls
 { 
-	//XPOS, YPOS, ZPOS, HEIGHT, ROTATE, NUMCONTROLS
-	LOD, XPOS, YPOS, ZPOS, HEADRADIUS,HEADSCALE, BODYTHICKNESS, THIGHHEIGHT, LEGHEIGHT, UPPERBODYANGLE, RIGHTTHIGHANGLE, LEFTTHIGHANGLE, RIGHTLEGANGLE, LEFTLEGANGLE
-	, FRAMEALL, NUMCONTROLS
+	LOD, XPOS, YPOS, ZPOS,
+	L1X, L1Y, L1Z,
+	BGCOLORR, BGCOLORG, BGCOLORB,
+	HEADRADIUS,HEADSCALE, BODYTHICKNESS, THIGHHEIGHT, LEGHEIGHT, 
+	UPPERBODYANGLE, RIGHTTHIGHANGLE, LEFTTHIGHANGLE, RIGHTLEGANGLE, LEFTLEGANGLE, 
+	FRAMEALL,
+	NUMCONTROLS
 };
 
 // Colors
@@ -23,5 +27,6 @@ enum SampleModelControls
 // We'll be getting the instance of the application a lot; 
 // might as well have it as a macro.
 #define VAL(x) (ModelerApplication::Instance()->GetControlValue(x))
+
 
 #endif

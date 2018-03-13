@@ -62,6 +62,7 @@ private:
 
 	// I'll let my friend touch my private parts
 	friend class ModelerUserInterface;
+	friend class SampleModel;//let sample get anim
 
     void    ShowControl(int controlNumber);
     void    HideControl(int controlNumber);
