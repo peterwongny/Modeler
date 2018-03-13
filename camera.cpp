@@ -4,6 +4,9 @@
 
 #include "camera.h"
 
+#include "modelerapp.h"
+#include "modelerglobals.h"
+
 #pragma warning(push)
 #pragma warning(disable : 4244)
 
@@ -15,6 +18,7 @@ const float kMouseRotationSensitivity		= 1.0f/90.0f;
 const float kMouseTranslationXSensitivity	= 0.03f;
 const float kMouseTranslationYSensitivity	= 0.03f;
 const float kMouseZoomSensitivity			= 0.08f;
+const float kMouseTwistSensitivity			= 0.003f;
 
 void MakeDiagonal(Mat4f &m, float k)
 {
@@ -92,9 +96,9 @@ void Camera::calculateViewingTransformParameters()
 	mPosition = originXform * (azimXform * (elevXform * (dollyXform * mPosition)));
 
 	if ( fmod((double)mElevation, 2.0*M_PI) < 3*M_PI/2 && fmod((double)mElevation, 2.0*M_PI) > M_PI/2 )
-		mUpVector= Vec3f(0,-1,0);
+		mUpVector= Vec3f(sin(mTwist),-cos(mTwist),0);
 	else
-		mUpVector= Vec3f(0,1,0);
+		mUpVector= Vec3f(sin(mTwist),(cos(mTwist)),0);
 
 	mDirtyTransform = false;
 }
@@ -102,7 +106,7 @@ void Camera::calculateViewingTransformParameters()
 Camera::Camera() 
 {
 	mElevation = mAzimuth = mTwist = 0.0f;
-	mDolly = -20.0f;
+	mDolly = -70.0f;
 	mElevation = 0.2f;
 	mAzimuth = (float)M_PI;
 
@@ -156,10 +160,14 @@ void Camera::dragMouse( int x, int y )
 		{
 			float dDolly = -mouseDelta[1] * kMouseZoomSensitivity;
 			setDolly(getDolly() + dDolly);
-			break;
 		}
 	case kActionTwist:
-		// Not implemented
+		{
+			float dTwist = -mouseDelta[0] * kMouseTwistSensitivity;
+			setTwist(getTwist() + dTwist);
+			break;
+		}
+
 	default:
 		break;
 	}
@@ -173,8 +181,7 @@ void Camera::releaseMouse( int x, int y )
 
 
 void Camera::applyViewingTransform() {
-	if( mDirtyTransform )
-		calculateViewingTransformParameters();
+
 
 	// Place the camera at mPosition, aim the camera at
 	// mLookAt, and twist the camera such that mUpVector is up
@@ -182,6 +189,17 @@ void Camera::applyViewingTransform() {
 	//gluLookAt(	mPosition[0], mPosition[1], mPosition[2],
 	//			mLookAt[0],   mLookAt[1],   mLookAt[2],
 	//			mUpVector[0], mUpVector[1], mUpVector[2]);
+
+	if (VAL(FRAMEALL)) {
+		mLookAt = Vec3f(VAL(XPOS), VAL(YPOS), VAL(ZPOS));
+
+			mDolly = -70;
+			mDirtyTransform = true;
+	}
+
+	if (mDirtyTransform)
+		calculateViewingTransformParameters();
+
 
 	lookAt(mPosition, mLookAt, mUpVector);
 }

@@ -1,3 +1,18 @@
-﻿  camera.cpp
+﻿  sample.cpp
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(123): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(125): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(126): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(127): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(128): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(129): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(133): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(134): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(135): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(137): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(138): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(139): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(140): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(142): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\wong ngo yin\desktop\comp4411\modeler\sample.cpp(143): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   modeler.vcxproj -> C:\Users\Wong Ngo Yin\Desktop\COMP4411\Modeler\.\Debug\modeler.exe
   modeler.vcxproj -> .\Debug/modeler.pdb (Full PDB)

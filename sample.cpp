@@ -100,7 +100,7 @@ void SampleModel::draw()
 	// projection matrix, don't bother with this ...
     ModelerView::draw();
 	//background color
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	//glClearColor(1.0, 1.0, 1.0, 1.0);
 
 	GLfloat lightPosition0[4] = {VAL(L1X), VAL(L1Y), VAL(L1Z), 0};
 
@@ -336,7 +336,21 @@ void SampleModel::draw()
 				}
 			glPopMatrix();//end of legs
 		glPopMatrix();// end of lower body
+	
+		
+	    //test
+		glPushMatrix();
+
+		glTranslated(3, 3, 3);
+		drawTorus(0.5, 2);
+
+		glPopMatrix();
+
+		//test end	
+		
+		
 	glPopMatrix();
+
 }
 
 int main()
@@ -364,6 +378,8 @@ int main()
 	controls[UPPERBODYANGLE] = ModelerControl("Upper Body Angle", -90, 90, 1, 0.0);
     //controls[HEIGHT] = ModelerControl("Height", 1, 2.5, 0.1f, 1);
 	//controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
+
+	controls[FRAMEALL] = ModelerControl("Frame All", 0, 1, 1, 0);
 
     ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
     return ModelerApplication::Instance()->Run();
