@@ -7,6 +7,9 @@
 #include <GL/glu.h>
 
 #include "modelerglobals.h"
+#include "bitmap.h"
+
+static unsigned char* textureImage;
 
 void drawTriangle(const double p1[3], const double p2[3], const double p3[3]) {
 	drawTriangle(p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2]);
@@ -42,6 +45,56 @@ void drawTrapezoidPrism(double h, double w1, double l1, double w2, double l2)
 
 	glPopMatrix();
 }
+
+
+void drawQuadTextured(const double p1[3], const double p2[3], const double p3[3], const double p4[3]) {
+	double a, b, c, d, e, f;
+	a = p2[0] - p1[0];
+	b = p2[1] - p1[1];
+	c = p2[2] - p1[2];
+
+	d = p3[2] - p1[2];
+	e = p3[2] - p1[2];
+	f = p3[2] - p1[2];
+
+	glPushMatrix();
+		glEnable(GL_TEXTURE_2D);
+		glBegin(GL_QUADS);
+		glNormal3d(b*f - c*e, c*d - a*f, a*e - b*d);
+		glTexCoord2f(0, 0); glVertex3f(p1[0], p1[1], p1[2]);
+		glTexCoord2f(0, 1); glVertex3f(p2[0], p2[1], p2[2]);
+		glTexCoord2f(1, 1); glVertex3f(p3[0], p3[1], p3[2]);
+		glTexCoord2f(1, 0); glVertex3f(p4[0], p4[1], p4[2]);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
+
+}
+
+void drawTrapezoidPrismTextured(double h, double w1, double l1, double w2, double l2)
+{
+	double a[3] = { -w1 / 2,h / 2,-l1 / 2 };
+	double b[3] = { w1 / 2,h / 2,-l1 / 2 };
+	double c[3] = { w1 / 2,h / 2,l1 / 2 };
+	double d[3] = { -w1 / 2,h / 2,l1 / 2 };
+	double e[3] = { -w2 / 2,-h / 2,-l2 / 2 };
+	double f[3] = { w2 / 2,-h / 2,-l2 / 2 };
+	double g[3] = { w2 / 2,-h / 2,l2 / 2 };
+	double hp[3] = { -w2 / 2,-h / 2,l2 / 2 };
+
+	glPushMatrix();
+		//6 quad
+		drawQuadTextured(a, b, c, d);
+
+		drawQuadTextured(a, b, f, e);
+		drawQuadTextured(b, c, g, f);
+		drawQuadTextured(c, d, hp, g);
+		drawQuadTextured(d, a, e, hp);
+
+		drawQuadTextured(d, e, f, g);
+	glPopMatrix();
+}
+
 
 void drawTrapezoidPrismShift_w(double h, double w1, double l1, double w2, double l2)
 {
@@ -100,13 +153,30 @@ void SampleModel::draw()
 	// projection matrix, don't bother with this ...
     ModelerView::draw();
 	//background color
-	//glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearColor(VAL(BGCOLORR), VAL(BGCOLORG), VAL(BGCOLORB), 1.0);
 
 	GLfloat lightPosition0[4] = {VAL(L1X), VAL(L1Y), VAL(L1Z), 0};
-
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition0);
-	//glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse0);
 
+	//load image
+	if (textureImage == NULL) {
+		int width, height;
+		textureImage = readBMP("linen2.bmp", width, height);
+	}
+		
+	// Create one OpenGL texture
+	GLuint textureID;
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, textureImage);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glDisable(GL_TEXTURE_2D);
+	
 	// draw the floor
 	setAmbientColor(.1f,.1f,.1f);
 	setDiffuseColor(COLOR_GREEN);
@@ -119,9 +189,7 @@ void SampleModel::draw()
 	setAmbientColor(.1f,.1f,.1f);
 	glPushMatrix();
 	glTranslated(VAL(XPOS), VAL(YPOS), VAL(ZPOS));
-		// float skinColor[3] = { (float)255 / 255, (float)224 / 255, (float)190 / 255 };//more like human
 		float skinColor[3] = { (float)243 / 255, (float)225 / 255, (float)210 / 255 };
-		//float skinColor[3] = { (float)252 / 255, (float)243 / 255, (float)235 / 255 };//more pale
 		float clothesColor[3] = { (float)15 / 255, (float)10 / 255, (float)10 / 255 };
 
 		//1 unit = 10 cm
@@ -181,16 +249,17 @@ void SampleModel::draw()
 					//chest
 					glPushMatrix();
 						glTranslated(0.0, -chestHeight/2, 0.0);
-						drawTrapezoidPrism(chestHeight, torseWidth, bodyThickness*4/5, torseWidth , bodyThickness);
+						drawTrapezoidPrismTextured(chestHeight, torseWidth, bodyThickness*4/5, torseWidth , bodyThickness);
 					glPopMatrix();
 					//waist
 					glPushMatrix();
 						glTranslated(0.0, -chestHeight - waistHeight_upper /2, 0.0);
-						drawTrapezoidPrism(waistHeight_upper, torseWidth, bodyThickness, torseWidth*3/4, bodyThickness*3/4);
+						drawTrapezoidPrismTextured(waistHeight_upper, torseWidth, bodyThickness, torseWidth*3/4, bodyThickness*3/4);
 					glPopMatrix();
 					glPushMatrix();
 						glTranslated(0.0, -chestHeight - waistHeight_upper - waistHeight_lower /2, 0.0);
-						drawTrapezoidPrism(waistHeight_lower, torseWidth * 3 / 4, bodyThickness * 3 / 4, torseWidth, bodyThickness);
+						drawTrapezoidPrismTextured(waistHeight_lower, torseWidth * 3 / 4, bodyThickness * 3 / 4, torseWidth, bodyThickness);
+						//drawTrapezoidPrism(waistHeight_lower, torseWidth * 3 / 4, bodyThickness * 3 / 4, torseWidth, bodyThickness);
 					glPopMatrix();
 					}
 				glPopMatrix();
@@ -337,20 +406,12 @@ void SampleModel::draw()
 			glPopMatrix();//end of legs
 		glPopMatrix();// end of lower body
 	
-		
-	    //test
 		glPushMatrix();
-
-		glTranslated(3, 3, 3);
-		drawTorus(0.5, 2);
-
-		glPopMatrix();
-
-		//test end	
-		
+			glTranslated(3, 3, 3);
+			drawTorus(0.5, 2);
+		glPopMatrix();		
 		
 	glPopMatrix();
-
 }
 
 int main()
@@ -363,6 +424,9 @@ int main()
 	controls[L1X] = ModelerControl("Light X Position", -30, 30, 1, 4);
 	controls[L1Y] = ModelerControl("Light Y Position", -30, 30, 1, 2);
 	controls[L1Z] = ModelerControl("Light Z Position", -30, 30, 1, -4);
+	controls[BGCOLORR] = ModelerControl("Background Color R", 0, 1, 0.01f, 1);
+	controls[BGCOLORG] = ModelerControl("Background Color G", 0, 1, 0.01f, 1);
+	controls[BGCOLORB] = ModelerControl("Background Color B", 0, 1, 0.01f, 1);
     controls[XPOS] = ModelerControl("X Position", -5, 5, 0.1f, 0);
     controls[YPOS] = ModelerControl("Y Position", 0, 5, 0.1f, 0);
     controls[ZPOS] = ModelerControl("Z Position", -5, 5, 0.1f, 0);
@@ -380,6 +444,7 @@ int main()
 	//controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
 
 	controls[FRAMEALL] = ModelerControl("Frame All", 0, 1, 1, 0);
+	textureImage = NULL;
 
     ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
     return ModelerApplication::Instance()->Run();

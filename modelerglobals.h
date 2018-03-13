@@ -12,6 +12,7 @@ enum SampleModelControls
 { 
 	LOD, XPOS, YPOS, ZPOS,
 	L1X, L1Y, L1Z,
+	BGCOLORR, BGCOLORG, BGCOLORB,
 	HEADRADIUS,HEADSCALE, BODYTHICKNESS, THIGHHEIGHT, LEGHEIGHT, 
 	UPPERBODYANGLE, RIGHTTHIGHANGLE, LEFTTHIGHANGLE, RIGHTLEGANGLE, LEFTLEGANGLE, 
 	FRAMEALL,
@@ -26,5 +27,6 @@ enum SampleModelControls
 // We'll be getting the instance of the application a lot; 
 // might as well have it as a macro.
 #define VAL(x) (ModelerApplication::Instance()->GetControlValue(x))
+
 
 #endif
