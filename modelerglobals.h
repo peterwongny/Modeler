@@ -11,10 +11,11 @@
 enum SampleModelControls
 { 
 	LOD, XPOS, YPOS, ZPOS,
-	L1X, L1Y, L1Z,
+	L1X, L1Y, L1Z, LINTENSITY,
 	BGCOLORR, BGCOLORG, BGCOLORB,
 	HEADRADIUS,HEADSCALE, BODYTHICKNESS, THIGHHEIGHT, LEGHEIGHT, 
 	UPPERBODYANGLE, RIGHTTHIGHANGLE, LEFTTHIGHANGLE, RIGHTLEGANGLE, LEFTLEGANGLE, 
+	CHANGELEGTEXTURE, CHANGEHANDS,
 	FRAMEALL,
 	NUMCONTROLS
 };
@@ -23,6 +24,7 @@ enum SampleModelControls
 #define COLOR_RED		1.0f, 0.0f, 0.0f
 #define COLOR_GREEN		0.0f, 1.0f, 0.0f
 #define COLOR_BLUE		0.0f, 0.0f, 1.0f
+#define COLOR_GOLD		0.5426f, 0.4574f, 0.0f
 
 // We'll be getting the instance of the application a lot; 
 // might as well have it as a macro.
