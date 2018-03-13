@@ -10,6 +10,7 @@
 #include "bitmap.h"
 
 static unsigned char* textureImage;
+static int frameTimer;
 
 void drawTriangle(const double p1[3], const double p2[3], const double p3[3]) {
 	drawTriangle(p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2]);
@@ -161,7 +162,35 @@ void SampleModel::draw()
 	//load image
 	if (textureImage == NULL) {
 		int width, height;
-		textureImage = readBMP("linen2.bmp", width, height);
+		textureImage = readBMP("texture.bmp", width, height);
+	}
+
+	//animation: walk
+	float anim_rightLeg_angle, anim_leftLeg_angle, anim_rightThigh_angle, anim_leftThigh_angle, anim_upperBody_angle;
+	anim_rightLeg_angle = anim_leftLeg_angle = anim_rightThigh_angle = anim_leftThigh_angle= anim_upperBody_angle = 0;
+	if (ModelerApplication::Instance()->m_animating) {
+		frameTimer = frameTimer>=60? 0: frameTimer + 1;
+		float front_Thigh_max = 30;
+		float front_Leg_max = 25;
+		float back_Thigh_max = 15;
+		float back_Leg_max = 10;
+		float upperBody_max = 8;
+		if (frameTimer<30) {
+			float ratio = frameTimer<15?(float)frameTimer/15: 1.0f - ((float)frameTimer - 15) / 15;
+			anim_rightThigh_angle = ratio * -front_Thigh_max;
+			anim_rightLeg_angle = ratio*front_Leg_max;
+			anim_leftThigh_angle = ratio*back_Thigh_max;
+			anim_leftLeg_angle = ratio*back_Leg_max;
+			anim_upperBody_angle = ratio*upperBody_max;
+		}
+		else{
+			float ratio = frameTimer<45?(float)(frameTimer-30) / 15: 1.0f - ((float)frameTimer - 45) / 15;
+			anim_leftThigh_angle = ratio * -front_Thigh_max;
+			anim_leftLeg_angle = ratio*front_Leg_max;
+			anim_rightThigh_angle = ratio * back_Thigh_max;
+			anim_rightLeg_angle = ratio * back_Leg_max;
+			anim_upperBody_angle = ratio*-upperBody_max;
+		}
 	}
 		
 	// Create one OpenGL texture
@@ -217,7 +246,7 @@ void SampleModel::draw()
 		//upper body
 		glPushMatrix();
 			glTranslated(0, footHeight+ legHeight+ thighHeight+ hipShift / 2 + waistHeight_lower+ waistHeight_upper+ chestHeight, 0.0);
-			glRotated(VAL(UPPERBODYANGLE), 0, 1, 0);
+			glRotated(VAL(UPPERBODYANGLE)+anim_upperBody_angle, 0, 1, 0);
 			//head and neck
 			glPushMatrix();
 				if (VAL(LOD) > 1) {
@@ -329,7 +358,7 @@ void SampleModel::draw()
 				glPushMatrix();//right leg
 					glTranslated(-thighRadius, 0, 0);
 					//pants
-					glRotated(90.0+ VAL(RIGHTTHIGHANGLE), 1.0, 0.0, 0.0);
+					glRotated(90.0+ VAL(RIGHTTHIGHANGLE)+anim_rightThigh_angle, 1.0, 0.0, 0.0);
 					glTranslated(0, 0, hipShift / 2);
 					setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 					drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio +legRadius*(1- pantsRatio));
@@ -344,7 +373,7 @@ void SampleModel::draw()
 					if (VAL(LOD) >2) {
 					glPushMatrix();
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
-						glRotated(VAL(RIGHTLEGANGLE), 1, 0, 0);
+						glRotated(VAL(RIGHTLEGANGLE)+anim_rightLeg_angle, 1, 0, 0);
 						drawCylinder(legHeight, legRadius, footRadius);
 						//ankle
 						glTranslated(0, 0, legHeight);
@@ -368,7 +397,7 @@ void SampleModel::draw()
 					glPushMatrix();//left leg
 					glTranslated(thighRadius, 0, 0);
 					//pants
-					glRotated(90.0 + VAL(LEFTTHIGHANGLE), 1.0, 0.0, 0.0);
+					glRotated(90.0 + VAL(LEFTTHIGHANGLE)+ anim_leftThigh_angle, 1.0, 0.0, 0.0);
 					glTranslated(0, 0, hipShift / 2);
 					setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 					drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio + legRadius*(1 - pantsRatio));
@@ -383,7 +412,7 @@ void SampleModel::draw()
 					if (VAL(LOD) >2) {
 						glPushMatrix();
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
-						glRotated(VAL(LEFTLEGANGLE), 1, 0, 0);
+						glRotated(VAL(LEFTLEGANGLE)+ anim_leftLeg_angle, 1, 0, 0);
 						drawCylinder(legHeight, legRadius, footRadius);
 						//ankle
 						glTranslated(0, 0, legHeight);
