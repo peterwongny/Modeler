@@ -13,6 +13,132 @@ static unsigned char* textureImage;
 static unsigned char* textureImageLeg;
 static int frameTimer;
 
+void drawLA(const float baseRadius, int depth);
+void drawLB(const float baseRadius, int depth);
+void drawLC(const float baseRadius, int depth);
+
+void drawLA(const float baseRadius, int depth) {
+	float height = VAL(LSHEIGHT);
+	float scale = VAL(LSSCALE);
+	if (depth <= 0)
+		return;
+	glPushMatrix();
+		drawCylinder(height, baseRadius, baseRadius*scale);
+		glTranslated(0, 0, height+VAL(LSSPACE));
+		float shift = baseRadius*scale*0.5;
+		glPushMatrix();
+			glTranslated(shift, shift, 0);
+			drawLB(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(shift, -shift, 0);
+		drawLA(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(-shift, shift, 0);
+		drawLC(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(-shift, -shift, 0);
+		drawLB(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+	glPopMatrix();
+	return;
+}
+
+void drawLB(const float baseRadius, int depth) {
+	float height = VAL(LSHEIGHT);
+	float scale = VAL(LSSCALE);
+	if (depth <= 0)
+		return;
+	glPushMatrix();
+		glPushMatrix();
+			float innerRadius = (baseRadius + baseRadius*scale) / 6;
+			glTranslated(0, 0, height / 3);
+			glPushMatrix();
+			glRotated(90, 1, 0, 0);
+			drawTorus(innerRadius, (baseRadius * 2 + baseRadius*scale) / 3);
+			glPopMatrix();
+			glTranslated(0, 0, height / 3);
+			glPushMatrix();
+			glRotated(90, 1, 0, 0);
+			drawTorus(innerRadius, (baseRadius + baseRadius*scale * 2) / 3);
+			glPopMatrix();
+		glPopMatrix();
+		glTranslated(0, 0, height + VAL(LSSPACE));
+		float shift = baseRadius*scale*0.5;
+		glPushMatrix();
+		glTranslated(shift, shift, 0);
+		drawLB(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(shift, -shift, 0);
+		drawLC(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(-shift, shift, 0);
+		drawLC(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(-shift, -shift, 0);
+		drawLA(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+	glPopMatrix();
+	return;
+}
+
+
+void drawLC(const float baseRadius, int depth) {
+	float height = VAL(LSHEIGHT);
+	float scale = VAL(LSSCALE);
+	if (depth <= 0)
+		return;
+	glPushMatrix();
+		glPushMatrix();
+			float innerRadius = min((baseRadius + baseRadius*scale) / 6,height/3);
+			glTranslated(0, 0, height / 3);
+			drawSphere(innerRadius);
+			float shiftSphere = (baseRadius + baseRadius*scale * 2) / 3 / 2;
+			glTranslated(0, 0, height / 3);
+			glPushMatrix();
+				glTranslated(shiftSphere, shiftSphere, 0);
+				drawSphere(innerRadius);
+			glPopMatrix();
+			glPushMatrix();
+			glTranslated(-shiftSphere, shiftSphere, 0);
+			drawSphere(innerRadius);
+			glPopMatrix();
+			glPushMatrix();
+			glTranslated(shiftSphere, -shiftSphere, 0);
+			drawSphere(innerRadius);
+			glPopMatrix();
+			glPushMatrix();
+			glTranslated(-shiftSphere, -shiftSphere, 0);
+			drawSphere(innerRadius);
+			glPopMatrix();
+		glPopMatrix();
+		glTranslated(0, 0, height + VAL(LSSPACE));
+		float shift = baseRadius*scale*0.5;
+		glPushMatrix();
+		glTranslated(shift, shift, 0);
+		drawLA(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(shift, -shift, 0);
+		drawLC(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(-shift, shift, 0);
+		drawLB(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+		glPushMatrix();
+		glTranslated(-shift, -shift, 0);
+		drawLA(baseRadius*scale*0.5, depth - 1);
+		glPopMatrix();
+	glPopMatrix();
+	return;
+}
+
 void drawTriangle(const double p1[3], const double p2[3], const double p3[3]) {
 	drawTriangle(p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2]);
 }
@@ -339,12 +465,11 @@ void SampleModel::draw()
 							glTranslated(0.0, 0, armLength);
 							if (!VAL(CHANGEHANDS))drawCylinder(armLength, armRadius, armRadius); 
 							else {
-								drawCylinder(armLength*2, armRadius, armRadius * 2.5);
-								if (VAL(LOD)>3){
+								drawCylinder(armLength*1.2, armRadius, armRadius * 2.5);
+								if (VAL(LOD)>3){//L-system
 									glPushMatrix();
-									glTranslated(0.0, 0, armLength*2+0.4);
-									glRotated(90, 1, 0, 0);
-									drawTorus(0.15, armRadius * 3);
+									glTranslated(0.0, 0.0, armLength * 1.2 + VAL(LSSPACE));
+									drawLA(armRadius*2.5, VAL(LSDEPTH));
 									glPopMatrix();
 								}
 							}
@@ -373,7 +498,13 @@ void SampleModel::draw()
 							glTranslated(0.0, 0, armLength);
 							if (!VAL(CHANGEHANDS))drawCylinder(armLength, armRadius, armRadius);
 							else {
-								drawCylinder(armLength * 2, armRadius, armRadius * 2.5);
+								drawCylinder(armLength * 1.2, armRadius, armRadius * 2.5);
+								if (VAL(LOD)>3) {//L-system
+									glPushMatrix();
+									glTranslated(0.0, 0.0, armLength * 1.2 + VAL(LSSPACE));
+									drawLA(armRadius*2.5, VAL(LSDEPTH));
+									glPopMatrix();
+								}
 							}
 						glPopMatrix();
 						}
@@ -532,11 +663,16 @@ int main()
 	controls[UPPERBODYANGLE] = ModelerControl("Upper Body Angle", -90, 90, 1, 0.0);
     controls[LINTENSITY] = ModelerControl("Light Intensity", -1, 1, 0.01f, 0.5);
 	controls[CHANGELEGTEXTURE] = ModelerControl("Change Legs Texture", 0, 1, 1, 0);
-	controls[CHANGEHANDS] = ModelerControl("Change Hands", 0, 1, 1, 0);
+	controls[CHANGEHANDS] = ModelerControl("Change Hands (Display L-System)", 0, 1, 1, 0);
+	controls[LSDEPTH] = ModelerControl("L-System: depth", 0, 5, 1, 3);
+	controls[LSHEIGHT] = ModelerControl("L-System: height", 0, 2, 0.1, 0.7);
+	controls[LSSPACE] = ModelerControl("L-System: space", 0, 1, 0.1f, 0.15);
+	controls[LSSCALE] = ModelerControl("L-System: scale", 1, 3, 0.1f, 1.2);
 	//controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
 
 	controls[FRAMEALL] = ModelerControl("Frame All", 0, 1, 1, 0);
 	textureImage = NULL;
+	textureImageLeg = NULL;
 
     ModelerApplication::Instance()->Init(&createSampleModel, controls, NUMCONTROLS);
     return ModelerApplication::Instance()->Run();
