@@ -8,6 +8,7 @@
 
 #include "modelerglobals.h"
 #include "bitmap.h"
+#include "InverseKinematics.h"
 
 static unsigned char* textureImage;
 static unsigned char* textureImageLeg;
@@ -270,9 +271,12 @@ void legTexture(GLuint textureID) {
 // To make a SampleModel, we inherit off of ModelerView
 class SampleModel : public ModelerView 
 {
+
+	InverseKinematics leftLegIK;
 public:
     SampleModel(int x, int y, int w, int h, char *label) 
-        : ModelerView(x,y,w,h,label) { }
+        : ModelerView(x,y,w,h,label) {	
+	}
 
 	~SampleModel() {
 		if (textureImage!=NULL)delete textureImage;
@@ -395,6 +399,9 @@ void SampleModel::draw()
 		float hipShift = torseWidth / 4; 
 		float toeHeight = 0.2;
 		float headScale = VAL(HEADSCALE);
+
+		Vec4f ikResult;
+
 		//upper body
 		glPushMatrix();
 			glTranslated(0, footHeight+ legHeight+ thighHeight+ hipShift / 2 + waistHeight_lower+ waistHeight_upper+ chestHeight, 0.0);
@@ -534,6 +541,9 @@ void SampleModel::draw()
 			glPopMatrix();//end of hip
 			}
 			glPushMatrix();//legs
+
+			
+
 				if (VAL(LOD) >1) {
 				glPushMatrix();//right leg
 					glTranslated(-thighRadius, 0, 0);
@@ -580,10 +590,49 @@ void SampleModel::draw()
 				glPopMatrix();//end of right leg
 				}
 				if (VAL(LOD) >1) {
+
+					//for IK
+					/*Vec4f ikResult;*/
+					if (VAL(INVERSEKINEMATICS)) {
+						//leftLegIK.SetOrigin(thighRadius, thighHeight + legHeight + footHeight, 0);
+						leftLegIK.SetOrigin(thighRadius, 0, 0);
+						leftLegIK.SetArmlength1(thighHeight);
+						leftLegIK.SetArmlength2(legHeight + footHeight);
+						//leftLegIK.SetQ(VAL(LEFTTHIGHANGLE_X), VAL(LEFTTHIGHANGLE), 0, VAL(LEFTLEGANGLE));
+
+						Vec3f destination; destination[0] = VAL(IKX); destination[1] = VAL(IKY) ; destination[2] = VAL(IKZ);
+						destination *= 0.1;
+						destination[1] -= (thighHeight + legHeight + footHeight);
+						destination[0] += thighRadius;
+
+						glPushMatrix();
+						setDiffuseColor(0, 0, 1);
+						glTranslated(destination[0] - 0.25, destination[1] - 0.25, destination[2] - 0.25);
+						drawBox(0.5, 0.5, 0.5);
+
+						glPopMatrix();
+
+						ikResult = leftLegIK.getResult(destination);
+					}
+					else {
+						//leftLegIK.SetQ(VAL(LEFTTHIGHANGLE_X), VAL(LEFTTHIGHANGLE), 0, VAL(LEFTLEGANGLE));
+						leftLegIK.SetQ(0, VAL(LEFTTHIGHANGLE), 0, VAL(LEFTLEGANGLE));
+
+					}
+
 					glPushMatrix();//left leg
 					glTranslated(thighRadius, 0, 0);
 					//pants
-					glRotated(90.0 + VAL(LEFTTHIGHANGLE)+ anim_leftThigh_angle, 1.0, 0.0, 0.0);
+					if (VAL(INVERSEKINEMATICS)) {
+						glRotated( 90 + ikResult[1], 1, 0, 0);
+						glRotated(ikResult[0], 0, 1, 0);
+						//printf("%f, %f   ", ikResult[0], ikResult[1]);
+					}
+					else {
+						glRotated(90.0 + VAL(LEFTTHIGHANGLE) + anim_leftThigh_angle, 1.0, 0.0, 0.0);
+						//glRotated(VAL(LEFTTHIGHANGLE_X), 0.0, 1.0, 0.0);
+					}
+
 					glTranslated(0, 0, hipShift / 2);
 					setDiffuseColor(clothesColor[0], clothesColor[1], clothesColor[2]);
 					drawCylinder(thighHeight * pantsRatio, thighRadius, thighRadius*pantsRatio + legRadius*(1 - pantsRatio));
@@ -597,12 +646,19 @@ void SampleModel::draw()
 					drawSphere(legRadius);
 
 					if (VAL(CHANGELEGTEXTURE) == 1)glDisable(GL_TEXTURE_2D);
-					//right leg
+					//left leg
 					if (VAL(LOD) >2) {
 						glPushMatrix();
 						if (VAL(CHANGELEGTEXTURE) == 1)legTexture(textureID);
 						setDiffuseColor(skinColor[0], skinColor[1], skinColor[2]);
-						glRotated(VAL(LEFTLEGANGLE)+ anim_leftLeg_angle, 1, 0, 0);
+						if (VAL(INVERSEKINEMATICS)) {
+							glRotated(ikResult[3], 1, 0, 0);
+							glRotated(ikResult[2], 0, 1, 0);
+							//printf("%f, %f   ", ikResult[2], ikResult[3]);
+						}
+						else {
+							glRotated(VAL(LEFTLEGANGLE) + anim_leftLeg_angle, 1, 0, 0);
+						}
 						drawCylinder(legHeight, legRadius, footRadius);
 						//ankle
 						glTranslated(0, 0, legHeight);
@@ -623,14 +679,38 @@ void SampleModel::draw()
 					}
 					glPopMatrix();//end of left leg
 				}
+
+
+				//test
+
+				//leftLegIK.SetOrigin(thighRadius, thighHeight + legHeight + footHeight,0);
+				//leftLegIK.SetArmlength1(thighHeight);
+				//leftLegIK.SetArmlength2(legHeight + footHeight);
+				//leftLegIK.SetQ(VAL(LEFTTHIGHANGLE_X), VAL(LEFTTHIGHANGLE), 0, VAL(LEFTLEGANGLE));
+				//leftLegIK.SetQ(ikResult[0], ikResult[1], ikResult[2], ikResult[3]);
+
+				Vec3f endpoint = leftLegIK.ForwardKinematics();
+
+				glPushMatrix();
+				setDiffuseColor(1, 0, 0);
+				glTranslated(endpoint[0] - 0.25, endpoint[1] - 0.25, endpoint[2] - 0.25);
+				drawBox(0.5, 0.5, 0.5);
+
+				glPopMatrix();
+
+				glPushMatrix();
+				setDiffuseColor(0, 1, 0);
+				glTranslated(leftLegIK.joint[0] - 0.25, leftLegIK.joint[1] - 0.25, leftLegIK.joint[2] - 0.25);
+				drawBox(0.5, 0.5, 0.5);
+
+				glPopMatrix();
+				//testend
+
+
+
 			glPopMatrix();//end of legs
 		glPopMatrix();// end of lower body
 	
-		/*glPushMatrix();
-			setDiffuseColor((float)255/255, (float)255 / 255, (float)51 / 255);
-			glTranslated(3, 3, 3);
-			drawTorus(0.5, 2);
-		glPopMatrix();*/
 		
 	glPopMatrix();
 }
@@ -658,16 +738,26 @@ int main()
 	controls[LEGHEIGHT] = ModelerControl("Leg Length", 20, 60, 1, 35.0);
 	controls[RIGHTTHIGHANGLE] = ModelerControl("Right Thigh Angle", -90, 90, 1, 0.0);
 	controls[LEFTTHIGHANGLE] = ModelerControl("Left Thigh Angle", -90, 90, 1, 0.0);
+	//controls[LEFTTHIGHANGLE_X] = ModelerControl("Left Thigh Angle_x", 0, 50, 1, 0.0);
 	controls[RIGHTLEGANGLE] = ModelerControl("Right Leg Angle", 0, 90, 1, 0.0);
 	controls[LEFTLEGANGLE] = ModelerControl("Left Leg Angle", 0, 90, 1, 0.0);
 	controls[UPPERBODYANGLE] = ModelerControl("Upper Body Angle", -90, 90, 1, 0.0);
     controls[LINTENSITY] = ModelerControl("Light Intensity", -1, 1, 0.01f, 0.5);
 	controls[CHANGELEGTEXTURE] = ModelerControl("Change Legs Texture", 0, 1, 1, 0);
+
 	controls[CHANGEHANDS] = ModelerControl("Change Hands (Display L-System)", 0, 1, 1, 0);
 	controls[LSDEPTH] = ModelerControl("L-System: depth", 0, 5, 1, 3);
 	controls[LSHEIGHT] = ModelerControl("L-System: height", 0, 2, 0.1, 1.2);
 	controls[LSSPACE] = ModelerControl("L-System: space", 0, 1, 0.1f, 0.1);
 	controls[LSSCALE] = ModelerControl("L-System: scale", 1, 3, 0.1f, 1.6);
+
+	controls[INVERSEKINEMATICS] = ModelerControl("Inverse Kinematics", 0, 1, 1, 0);
+	controls[IKX] = ModelerControl("target x", -50, 50, 1, 0);
+	controls[IKY] = ModelerControl("target y", -50, 50, 1, 0);
+	controls[IKZ] = ModelerControl("target z", -50, 50, 1, 50);
+	//controls[IKCONSTRAINT] = ModelerControl("IK constraints", 0, 1, 1, 0);
+	//controls[ROTATE] = ModelerControl("Rotate", -135, 135, 1, 0);
+
 
 	controls[FRAMEALL] = ModelerControl("Frame All", 0, 1, 1, 0);
 	textureImage = NULL;
